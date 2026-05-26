@@ -8,6 +8,7 @@ An AI-powered Jira assistant with a Chrome extension frontend, Python backend, a
 
 Chrome Extension  →  n8n Webhook  →  LLM Pipeline  →  Python Backend (Jira API)
 
+![diagram](img/Jira_AI_Agent_Interface_Dashboard-NotebookLM.html)
 
 **Components:**
 - **Chrome Extension** — Chat UI embedded in Jira, sends user messages with page context
