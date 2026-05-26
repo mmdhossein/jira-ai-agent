@@ -8,7 +8,7 @@ An AI-powered Jira assistant with a Chrome extension frontend, Python backend, a
 
 Chrome Extension  →  n8n Webhook  →  LLM Pipeline  →  Python Backend (Jira API)
 
-![diagram](img/Jira_AI_Agent_Interface_Dashboard-NotebookLM.html)
+![diagram](img/Project_Management_AI_Agent_Workflow.png)
 
 **Components:**
 - **Chrome Extension** — Chat UI embedded in Jira, sends user messages with page context
@@ -20,6 +20,9 @@ Chrome Extension  →  n8n Webhook  →  LLM Pipeline  →  Python Backend (Jira
 ## n8n Workflow
 
 The workflow processes chat messages through a multi-stage LLM pipeline:
+
+![diagram](img/n8n.png)
+
 
 Webhook → Extract Context → LLM1 Classification → Parse Flags├── [needsProcessing=false] → Simple Response → Return
     └── [needsProcessing=true]
