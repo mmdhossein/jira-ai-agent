@@ -1,4 +1,4 @@
-```markdown
+
 # 🤖 Jira AI Agent
 
 > An intelligent AI assistant embedded directly in Jira — powered by a multi-LLM pipeline, Python backend, and Chrome extension.
