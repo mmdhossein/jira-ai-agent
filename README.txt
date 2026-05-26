@@ -1,227 +1,137 @@
+Here's the revised README:
+
+---
 
 # 🤖 Jira AI Agent
 
-> An intelligent AI assistant embedded directly in Jira — powered by a multi-LLM pipeline, Python backend, and Chrome extension.
+![n8n](https://img.shields.io/badge/n8n-workflow-orange?logo=n8n) ![Python](https://img.shields.io/badge/Python-FastAPI-blue?logo=python) ![Chrome](https://img.shields.io/badge/Chrome-Extension-yellow?logo=googlechrome) ![Jira](https://img.shields.io/badge/Jira-Integration-0052CC?logo=jira)
 
-![n8n](https://img.shields.io/badge/n8n-workflow-orange?logo=n8n)
-![Python](https://img.shields.io/badge/Python-backend-blue?logo=python)
-![Chrome](https://img.shields.io/badge/Chrome-extension-yellow?logo=googlechrome)
-![Jira](https://img.shields.io/badge/Jira-integration-0052CC?logo=jira)
+An intelligent Jira assistant powered by multi-model AI. Ask questions, get reports, request predictions, and generate charts — all from a Chrome extension sidebar.
 
 ---
 
-## 🏗️ Architecture
+## 🏗 Architecture
 
-```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────────┐
-│ Chrome Extension│────▶│  n8n Webhook     │────▶│  LLM Pipeline       │
-│  (Chat UI)      │◀────│  /chat-intel...  │◀────│  Classification     │
-└─────────────────┘     └──────────────────┘     │  Planning           │
-                                                  │  Generation         │
-                                                  └────────┬────────────┘
-                                                           │
-                                                  ┌────────▼────────────┐
-                                                  │  Python Backend     │
-                                                  │  Jira REST API      │
-                                                  └─────────────────────┘
+The system has four layers working together:
 
-| Layer | Technology | Role |
-|---|---|---|
-| 🖥️ Frontend | Chrome Extension | Chat UI embedded in Jira |
-| ⚙️ Orchestration | n8n | Multi-LLM pipeline & routing |
-| 🐍 Backend | Python (FastAPI) | Jira API wrapper & analytics |
-| 🧠 AI | GPT-4o · DeepSeek · Gemini | Classification, planning, generation |
-
----
-
-## 🔄 n8n Workflow
-
-### Pipeline Overview
-
-
-📥 Webhook
-    └── 🔍 Extract Context
-            └── 🧠 LLM1 — Intent Classification (DeepSeek)
-                    └── 🚦 Parse Flags
-                            │
-                            ├── needsProcessing = false
-                            │       └── 💬 Simple Response ──────────────────▶ 📤 Return
-                            │
-                            └── needsProcessing = true
-                                    │
-                                    ├── ask_help = true
-                                    │       └── 🆘 LLM4 Help (DeepSeek) ──────▶ 📤 Return
-                                    │
-                                    └── ask_help = false
-                                            └── 📋 LLM2 API Planning (GPT-4o)
-                                                    └── 🔧 Prepare API Calls
-                                                            └── 🌐 Call Jira API
-                                                                    └── 📊 Aggregate Data
-                                                                            └── ✍️ LLM3 Generate (Gemini)
-                                                                                    └── ✅ Validate Response
-                                                                                            └── 📤 Return Final
-
-### 🧠 LLM Models
-
-| # | Model | Stage | Purpose |
-|---|---|---|---|
-| 1 | `DeepSeek Chat` | Classification | Detects intent flags from user message |
-| 2 | `GPT-4o` | API Planning | Selects which Jira endpoints to call |
-| 3 | `Gemini 2.0 Flash Lite` | Generation | Builds final response, charts, summaries |
-| 4 | `DeepSeek v4 Flash` | Help | Answers general Jira how-to questions |
-
-### 🚩 Intent Flags
-
-| Flag | Trigger |
+| Layer | Technology |
 |---|---|
-| `ask_report` | Sprint data, issue analysis, workload queries |
-| `ask_recommendation` | Requests for actionable suggestions |
-| `ask_prediction` | Forecasts, projections, estimations |
-| `ask_help` | General Jira usage questions |
-| `ask_chart` | Visualization or chart requested |
-| `ask_pdf` | Export or PDF generation requested |
+| Frontend | Chrome Extension |
+| Orchestration | n8n |
+| Backend | Python (FastAPI) |
+| AI Models | GPT-4o · DeepSeek · Gemini 2.0 |
+
+The Chrome extension captures your message and Jira context, sends it to an n8n webhook, which classifies intent, fetches data from the Python backend, and returns a structured AI-generated response.
 
 ---
 
-## 🔌 Webhook API
+## ⚙️ n8n Workflow
 
-### Request
+The workflow is a sequential pipeline triggered by a webhook. Here's what each stage does:
 
-**`POST`** `/webhook/chat-intelligence`
+**1. Webhook & Context Extraction**
+Receives the user message along with session info, current Jira project, page context, and recent chat history.
 
-json
-{
-  "user_id": "u_123",
-  "session_id": "sess_abc",
-  "message": "Show me sprint velocity for PROJECT-X",
-  "chat_history": [],
-  "current_project": "PROJECT-X",
-  "page_context": {
-    "page_type": "board | backlog | issue | dashboard"
-  }
-}
+**2. Intent Classification (DeepSeek Chat)**
+An LLM classifies the message into one or more intent flags: report request, recommendation, prediction, PDF export, chart generation, or general help. It also detects the language (English or Persian).
 
-### Response
+**3. Parse & Route**
+Flags are parsed and the workflow branches:
+- Simple messages (greetings, thanks) → a warm short reply
+- Help/how-to questions → a Jira knowledge assistant
+- Data requests → the full API pipeline
 
-json
-{
-  "success": true,
-  "message": "Here's the velocity trend for PROJECT-X over the last 5 sprints...",
-  "report": {
-    "summary": "Executive summary of findings",
-    "chart_data": {
-      "chart_plan": "bar | line | pie | scatter | histogram | heatmap",
-      "title": "Sprint Velocity",
-      "labels": ["Sprint 1", "Sprint 2", "Sprint 3"],
-      "values": [34, 41, 38]
-    },
-    "structured_data": {
-      "type": "key_insights",
-      "items": [
-        { "label": "Avg Velocity", "value": "37.7 points" }
-      ]
-    }
-  },
-  "flags": {
-    "ask_chart": true,
-    "ask_pdf": false
-  }
-}
+**4. API Planning (GPT-4o)**
+For data requests, GPT-4o decides which backend endpoints to call based on the user's intent and current project context.
+
+**5. Jira Data Fetching**
+The planned API calls are executed against the Python backend, which proxies to your Jira instance.
+
+**6. Response Generation (Gemini 2.0 Flash Lite)**
+The aggregated Jira data is passed to Gemini, which produces a conversational message plus a structured report with summary, chart data, and key insights.
+
+**7. Validation & Return**
+The response is validated (chart type and data shape are checked), then returned to the extension.
 
 ---
 
 ## 🐍 Python Backend
 
-### API Endpoints
+Proxies requests to Jira and exposes these endpoints:
 
-#### 📁 Projects
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/jira/projects` | List all projects |
-| `GET` | `/api/jira/projects/{key}` | Project details |
+**Projects**
+- `GET /api/jira/projects` — list all projects
+- `GET /api/jira/projects/{key}` — project details
 
-#### 🎫 Issues
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/jira/issues/{key}` | Issue details |
-| `GET` | `/api/jira/issues/{key}/changelog` | Issue change history |
-| `GET` | `/api/jira/search?jql={query}` | JQL search |
+**Issues**
+- `GET /api/jira/issues/{key}` — issue details
+- `GET /api/jira/issues/{key}/changelog` — issue history
+- `GET /api/jira/search?jql={query}` — JQL search
 
-#### 🏃 Sprints
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/jira/sprints` | List sprints |
-| `GET` | `/api/jira/sprints/{id}` | Sprint details |
-| `GET` | `/api/jira/sprints/{id}/issues` | Issues in sprint |
+**Sprints**
+- `GET /api/jira/sprints` — all sprints
+- `GET /api/jira/sprints/{id}` — sprint details
+- `GET /api/jira/sprints/{id}/issues` — sprint issues
 
-#### 📊 Analytics
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/jira/analytics/velocity?project={key}` | Velocity data |
-| `GET` | `/api/jira/analytics/burndown?sprint={id}` | Burndown chart data |
+**Analytics**
+- `GET /api/jira/analytics/velocity?project={key}`
+- `GET /api/jira/analytics/burndown?sprint={id}`
 
-#### 👥 Users
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/jira/users` | List users |
-| `GET` | `/api/jira/users/{id}/workload` | User workload |
+**Users**
+- `GET /api/jira/users`
+- `GET /api/jira/users/{id}/workload`
 
-### ⚙️ Setup
+### Setup
 
-bash
-cd backend
+```bash
 python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
 python main.py
+```
 
 **.env**
-env
 JIRA_BASE_URL=https://your-domain.atlassian.net
 JIRA_EMAIL=your@email.com
 JIRA_API_TOKEN=your_api_token
 
-> 🔑 Generate your API token at [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
+
+Get your API token at [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
 
 ---
 
 ## 🧩 Chrome Extension
 
-### Installation
-
-1. Open Chrome and navigate to `chrome://extensions`
-2. Toggle **Developer mode** on (top right)
-3. Click **Load unpacked**
-4. Select the `extension/` folder from this repo
-
-### Configuration
-
-Open the extension settings and set your **n8n webhook URL** before first use.
+1. Open `chrome://extensions`
+2. Enable **Developer mode**
+3. Click **Load unpacked** and select the `extension/` folder
+4. Open any Jira page and click the extension icon
+5. Configure the webhook URL in extension settings
 
 ---
 
 ## 🚀 Getting Started
 
-
-1. 🐍  Start Python backend          →  cd backend && python main.py
-2. ⚙️  Import n8n workflow            →  import workflow.json into n8n
-3. 🔧  Configure Prepare API Calls   →  set baseUrl to http://localhost:8000
-4. 🧩  Load Chrome extension         →  chrome://extensions → Load unpacked
-5. 🌐  Open Jira                     →  start chatting with your AI agent
+1. Start the Python backend
+2. Import the n8n workflow JSON and activate it
+3. Update the base URL in the **Prepare API Calls** node to match your backend
+4. Load the Chrome extension
+5. Open Jira and start chatting
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠 Tech Stack
 
-| Category | Technology |
+| Tool | Purpose |
 |---|---|
-| 🖥️ Frontend | Chrome Extension (JavaScript) |
-| ⚙️ Orchestration | [n8n](https://n8n.io) |
-| 🐍 Backend | Python · FastAPI |
-| 🤖 LLMs | GPT-4o · DeepSeek Chat · DeepSeek v4 Flash · Gemini 2.0 Flash Lite |
-| 📋 Project Management | Atlassian Jira REST API v3 |
+| n8n | Workflow orchestration |
+| FastAPI | Jira proxy backend |
+| DeepSeek Chat | Intent classification |
+| GPT-4o | API planning |
+| Gemini 2.0 Flash Lite | Response generation |
+| Chrome Extension | User interface |
 
 ---
 
-<p align="center">Built with ❤️ to make Jira actually enjoyable</p>
+<div align="center">Built with ❤️ to make Jira actually enjoyable</div>
