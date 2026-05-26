@@ -161,6 +161,6 @@ Set the n8n webhook URL in the extension settings before use.
 
 - **Frontend:** Chrome Extension (JS)
 - **Orchestration:** n8n
-- **Backend:** Python (FastAPI / Flask)
+- **Backend:** Python (FastAPI)
 - **LLMs:** GPT-4o, DeepSeek Chat, DeepSeek v4 Flash, Gemini 2.0 Flash Lite
 - **Jira:** Atlassian REST API v3
