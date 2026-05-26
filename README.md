@@ -6,7 +6,7 @@ An AI-powered Jira assistant with a Chrome extension frontend, Python backend, a
 
 ## Architecture
 
-Chrome Extension  →  n8n Webhook  →  LLM Pipeline  →  Python Backend (Jira API)
+Chrome Extension → Python Backend(request processing) →  n8n Webhook  →  LLM Pipeline  →  Python Backend (Jira API)
 
 ![diagram](img/Project_Management_AI_Agent_Workflow.png)
 
