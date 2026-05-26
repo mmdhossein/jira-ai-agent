@@ -1,52 +1,54 @@
-# Jira AI Agent
+﻿# Jira AI Agent
 
 An AI-powered Jira assistant with a Chrome extension frontend, Python backend, and n8n automation workflow.
 
----
-
 ## Architecture
 
-Chrome Extension  →  n8n Webhook  →  LLM Pipeline  →  Python Backend (Jira API)
-
+Chrome Extension → n8n Webhook → LLM Pipeline → Python Backend (Jira API)
 
 **Components:**
-- **Chrome Extension** — Chat UI embedded in Jira, sends user messages with page context
-- **Python Backend** — REST API wrapping Jira APIs + analytics endpoints
-- **n8n Workflow** — Orchestrates intent classification, API planning, data fetching, and response generation
 
----
+- **Chrome Extension** — Chat UI embedded in Jira, sends user messages with page context
+- **Python Backend** — REST API wrapping Jira APIs and analytics endpoints
+- **n8n Workflow** — Orchestrates intent classification, API planning, data fetching, and response generation
 
 ## n8n Workflow
 
-The workflow processes chat messages through a multi-stage LLM pipeline:
+The workflow processes chat messages through a multi-stage LLM pipeline.
 
-Webhook → Extract Context → LLM1 Classification → Parse Flags├── [needsProcessing=false] → Simple Response → Return
-    └── [needsProcessing=true]
-            ├── [ask_help=true]  → LLM4 Help → Return Help
-            └── [ask_help=false] → LLM2 API Planning → Prepare API Calls
-                                        → Call Jira API → Aggregate Data
-                                        → LLM3 Generate → Validate Response → Return Final
-
+```text
+Webhook
+  └─> Extract Context
+        └─> LLM1 Classification
+              └─> Parse Flags
+                    ├─> [needsProcessing=false] → Simple Response → Return
+                    └─> [needsProcessing=true]
+                          ├─> [ask_help=true]  → LLM4 Help → Return Help
+                          └─> [ask_help=false]
+                                └─> LLM2 API Planning → Prepare API Calls
+                                      └─> Call Jira API → Aggregate Data
+                                      └─> LLM3 Generate → Validate Response → Return Final
+```
 
 ### Stages
 
 | Stage | Model | Role |
-|---|---|---|
+| --- | --- | --- |
 | LLM1 Classification | DeepSeek Chat | Classifies intent flags |
 | LLM2 API Planning | GPT-4o | Selects which Jira APIs to call |
-| LLM3 Generate | Gemini 2.0 Flash Lite | Generates final response + report |
+| LLM3 Generate | Gemini 2.0 Flash Lite | Generates final response and report |
 | LLM4 Help | DeepSeek v4 Flash | Answers Jira how-to questions |
 
 ### Intent Flags
 
 | Flag | Meaning |
-|---|---|
+| --- | --- |
 | `ask_report` | Data analysis, sprints, issues, workloads |
 | `ask_recommendation` | Actionable suggestions |
 | `ask_prediction` | Forecasts and projections |
 | `ask_help` | General Jira questions |
-| `ask_chart` | Chart/visualization requested |
-| `ask_pdf` | PDF/file export requested |
+| `ask_chart` | Chart or visualization requested |
+| `ask_pdf` | PDF or file export requested |
 
 ### Webhook
 
@@ -91,14 +93,12 @@ Webhook → Extract Context → LLM1 Classification → Parse Flags├── [ne
 }
 ```
 
----
-
 ## Python Backend
 
 ### Available Endpoints
 
 | Method | Endpoint | Description |
-|---|---|---|
+| --- | --- | --- |
 | GET | `/api/jira/projects` | List all projects |
 | GET | `/api/jira/projects/{key}` | Project details |
 | GET | `/api/jira/issues/{key}` | Issue details |
@@ -123,42 +123,37 @@ cp .env.example .env  # fill in Jira credentials
 python main.py
 ```
 
-**.env**
+**Environment variables**
+
 ```env
 JIRA_BASE_URL=https://your-domain.atlassian.net
 JIRA_EMAIL=your@email.com
 JIRA_API_TOKEN=your_api_token
 ```
 
----
-
 ## Chrome Extension
 
 ### Setup
 
-1. Open Chrome → `chrome://extensions`
+1. Open Chrome and navigate to `chrome://extensions`
 2. Enable **Developer mode**
-3. Click **Load unpacked** → select the `extension/` folder
+3. Click **Load unpacked** and select the `extension/` folder
 
 ### Configuration
 
 Set the n8n webhook URL in the extension settings before use.
 
----
-
 ## Getting Started
 
-1. Start the Python backend (`localhost:8000`)
+1. Start the Python backend on `localhost:8000`
 2. Import and activate the n8n workflow
 3. Set `baseUrl` in the **Prepare API Calls** node to your backend address
 4. Load the Chrome extension
 5. Open Jira and start chatting
 
----
-
 ## Tech Stack
 
-- **Frontend:** Chrome Extension (JS)
+- **Frontend:** Chrome Extension (JavaScript)
 - **Orchestration:** n8n
 - **Backend:** Python (FastAPI / Flask)
 - **LLMs:** GPT-4o, DeepSeek Chat, DeepSeek v4 Flash, Gemini 2.0 Flash Lite
