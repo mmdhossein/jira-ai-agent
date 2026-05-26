@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jira AI Agent</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 340px;
+      min-height: 420px;
+      background: #0d0d1a;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #e2e8f0;
+      overflow: hidden;
+    }
+
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 20%, rgba(139,92,246,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(109,40,217,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      padding: 24px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 16px rgba(139,92,246,0.5);
+    }
+
+    .header-text h1 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: 0.3px;
+    }
+
+    .header-text p {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    /* Glass card */
+    .glass-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(139,92,246,0.2);
+      border-radius: 14px;
+      padding: 18px;
+      backdrop-filter: blur(12px);
+    }
+
+    /* Auth form */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .form-label {
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 600;
+    }
+
+    .form-input {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(139,92,246,0.25);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #f1f5f9;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    .form-input:focus {
+      border-color: rgba(139,92,246,0.6);
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.12);
+    }
+
+    .form-input::placeholder { color: #475569; }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(139,92,246,0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(139,92,246,0.45);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-ghost {
+      background: rgba(255,255,255,0.05);
+      color: #94a3b8;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .btn-ghost:hover { background: rgba(255,255,255,0.09); color: #e2e8f0; }
+
+    /* Status message */
+    .status-msg {
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 7px;
+      text-align: center;
+    }
+
+    .status-msg.error {
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.25);
+      color: #fca5a5;
+    }
+
+    .status-msg.success {
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.2);
+      color: #86efac;
+    }
+
+    .status-msg.info {
+      background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.2);
+      color: #c4b5fd;
+    }
+
+    /* Logged-in state */
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .user-details { flex: 1; }
+    .user-name { font-size: 13px; font-weight: 600; color: #f1f5f9; }
+    .user-mobile { font-size: 11px; color: #64748b; }
+
+    .project-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(139,92,246,0.15);
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: #c4b5fd;
+      font-weight: 600;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #a855f7;
+      box-shadow: 0 0 6px #a855f7;
+    }
+
+    .actions { display: flex; gap: 8px; }
+    .actions .btn { flex: 1; }
+
+    /* OTP hint */
+    .otp-hint {
+      font-size: 11px;
+      color: #64748b;
+      text-align: center;
+    }
+
+    .step-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #c4b5fd;
+      margin-bottom: 12px;
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">🤖</div>
+      <div class="header-text">
+        <h1>Jira AI Agent</h1>
+        <p>Powered by your backend</p>
+      </div>
+    </div>
+
+    <!-- Step 1: Mobile input -->
+    <div id="step-mobile" class="glass-card">
+      <div class="step-title">Sign in with mobile</div>
+      <div class="form-group">
+        <label class="form-label">Mobile Number</label>
+        <input
+          id="mobile-input"
+          class="form-input"
+          type="tel"
+          placeholder="e.g. 989369872050"
+          maxlength="20"
+        />
+        <button id="send-otp-btn" class="btn btn-primary">Send OTP</button>
+      </div>
+      <div id="mobile-status" class="status-msg hidden"></div>
+    </div>
+
+    <!-- Step 2: OTP input -->
+    <div id="step-otp" class="glass-card hidden">
+      <div class="step-title">Enter verification code</div>
+      <div class="form-group">
+        <label class="form-label">OTP Code</label>
+        <input
+          id="otp-input"
+          class="form-input"
+          type="text"
+          placeholder="Enter 4-digit code"
+          maxlength="6"
+        />
+        <button id="verify-otp-btn" class="btn btn-primary">Verify</button>
+        <button id="resend-btn" class="btn btn-ghost">Resend OTP</button>
+      </div>
+      <div id="otp-status" class="status-msg hidden"></div>
+      <p class="otp-hint" id="otp-hint"></p>
+    </div>
+
+    <!-- Logged-in state -->
+    <div id="step-loggedin" class="glass-card hidden">
+      <div class="user-info">
+        <div class="avatar" id="user-avatar">U</div>
+        <div class="user-details">
+          <div class="user-name" id="user-name-display">User</div>
+          <div class="user-mobile" id="user-mobile-display"></div>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div class="project-badge">
+          <div class="dot"></div>
+          <span id="project-name-display">Detecting project...</span>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:14px;">
+        <button id="open-chat-btn" class="btn btn-primary">Open Chat</button>
+        <button id="logout-btn" class="btn btn-ghost">Logout</button>
+      </div>
+    </div>
+
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

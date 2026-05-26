@@ -1,0 +1,638 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-intelligence",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "421bb3de-5b19-4412-bafc-fab36363ee96",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        -976,
+        96
+      ],
+      "webhookId": "chat-intelligence"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "user_id",
+              "name": "user_id",
+              "value": "={{ $json.body.user_id }}",
+              "type": "string"
+            },
+            {
+              "id": "session_id",
+              "name": "session_id",
+              "value": "={{ $json.body.session_id }}",
+              "type": "string"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "value": "={{ $json.body.message }}",
+              "type": "string"
+            },
+            {
+              "id": "chat_history",
+              "name": "chat_history",
+              "value": "={{ $json.body.chat_history }}",
+              "type": "string"
+            },
+            {
+              "id": "current_project",
+              "name": "current_project",
+              "value": "={{ $json.body.current_project }}",
+              "type": "string"
+            },
+            {
+              "id": "page_context",
+              "name": "page_context",
+              "value": "={{ $json.body.page_context }}",
+              "type": "object"
+            },
+            {
+              "id": "6467fbe4-c5fe-4d31-a8bc-8562b855dcf3",
+              "name": "previous_messages",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c4122bfa-5331-467b-84ee-e6bd8c0f4f71",
+      "name": "Extract Context",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        -784,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "deepseek-chat",
+          "mode": "list",
+          "cachedResultName": "DEEPSEEK-CHAT"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a Classifier user intent. Return JSON only in the format below:\n{\"ask_help\": false, \"ask_report\": true, \"ask_recommendation\": false, \"ask_prediction\": false, \"ask_pdf\": false, \"ask_chart\": true, detected_language: English| Persian}\n\nFlags (all boolean, default false):\n- ask_report: asking for data analysis, sprints, summaries, issues, scopes, changes, overdue tasks, operational and business tasks, teams, workloads anything related to the project(s)\n- ask_recommendation: Actionable suggestions \n- ask_prediction: Future projections, forecasts\n- ask_pdf: PDF/ file request\n- ask_chart: ask for chart/visualization/image/diagram etc\n- detected_language : user message language  \n- ask_help: any thing not classified above\n\nRules:\n- ask_pdf/ask_chart can combine with other flags\n- Multiple flags can be true\n- If unclear or greeting/acknowledgment, all false\n",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.message }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "dcb7c47c-25a5-4436-abab-90160a6bf8cd",
+      "name": "LLM1 Classification",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        -576,
+        112
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "VxRvCZKTLr99E9cO",
+          "name": "OpenAI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const llm1Output = $input.first().json;\nlet flags;\n\ntry {\n  const content = llm1Output.message?.content || llm1Output.choices?.[0]?.message?.content || '{}';\n  flags = JSON.parse(content);\n} catch (e) {\n  flags = {};\n}\n\nconst result = {\n  ask_help: flags.ask_help || false,\n  ask_report: flags.ask_report || false,\n  ask_recommendation: flags.ask_recommendation || false,\n  ask_prediction: flags.ask_prediction || false,\n  ask_pdf: flags.ask_pdf || false,\n  ask_chart: flags.ask_chart || false\n};\n\nconst needsProcessing = result.ask_help || result.ask_report || result.ask_recommendation || result.ask_prediction;\n\n\n\nconst context = $('Extract Context').first().json;\n\nreturn {\n  json: {\n    ...result,\n    needsProcessing,\n    user_message: context.message,\n    context: {\n      user_id: context.user_id,\n      session_id: context.session_id,\n      current_project: context.current_project,\n      page_context: context.page_context,\n      chat_history: (context.chat_history || []).slice(-3),\n      language: flags.detected_language\n    }\n  }\n};"
+      },
+      "id": "1f95aeab-81f0-470d-9dd5-40a114b1167e",
+      "name": "Parse Flags",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "deepseek-chat",
+          "mode": "list",
+          "cachedResultName": "DEEPSEEK-CHAT"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Respond politely if ask_chart is {{ $json.ask_chart }} OR\nask_pdf is {{ $json.ask_pdf }} say like \"it is ready and you are working on it\".\notherwise:\nRespond conversationally to greetings, thanks, acknowledgments, or unclear requests as Jira assistant. \nrespond in {{ $json.context.language }}\nKeep it brief and warm.\nDon't talk about off-topics \n\n",
+              "role": "system"
+            },
+            {
+              "content": "="
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5ece957e-111d-4296-b3f4-18dcd565f7d3",
+      "name": "Simple Response",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        16,
+        272
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "w1L6lrJFAu2c0hoV",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"message\": $json.message?.content || $json.choices?.[0]?.message?.content || \"Hello! How can I help you with Jira today?\", \"report\": null, \n\nflags:{ask_pdf:$('Parse Flags').item.json.ask_pdf, \n\nask_chart:$('Parse Flags').item.json.ask_chart,\n\n} ,\n\"success\":true\n} }}",
+        "options": {}
+      },
+      "id": "f2caeeb9-d9ab-442f-800e-ae6923096f93",
+      "name": "Return Simple",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        336,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "ea7a2ee3-9084-46a2-96d9-159a4093e62a",
+              "leftValue": "={{ $json.ask_help }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "907f66dc-d8bc-4d2d-9095-ea10ae2aa3b7",
+      "name": "Is Help Query",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        16,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "deepseek-v4-flash",
+          "mode": "list",
+          "cachedResultName": "DEEPSEEK-V4-FLASH"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a Jira expert. Answer questions about Jira concepts, workflows, best practices, and how-to guides. Be concise and practical.\n\nContext:\n- Current project: {{ $json.context.current_project || 'Not specified' }}\n- Page: {{ $json.context.page_context?.page_type || 'Unknown' }}\n- previous chats:  {{ $('Webhook').item.json.body.chat_history }}",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.user_message }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4bbc056d-50bb-414a-b985-a9fd944d26c5",
+      "name": "LLM4 Help",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        -160
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "w1L6lrJFAu2c0hoV",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"message\": $json.message?.content || $json.choices?.[0]?.message?.content || \"I can help with Jira questions.\", \"report\": null , \"success\":true} }}",
+        "options": {}
+      },
+      "id": "7c2200d4-0352-4b4c-a007-c187a38e3afd",
+      "name": "Return Help",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        512,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a Jira API planner. Analyze the user request and determine which backend APIs to call.\n\nAvailable endpoints:\n- GET /api/jira/projects\n- GET /api/jira/projects/{key}\n- GET /api/jira/issues/{key}\n- GET /api/jira/issues/{key}/changelog\n- GET /api/jira/search?jql={query}\n- GET /api/jira/sprints\n- GET /api/jira/sprints/{id}\n- GET /api/jira/sprints/{id}/issues\n- GET /api/jira/analytics/velocity?project={key}\n- GET /api/jira/analytics/burndown?sprint={id}\n- GET /api/jira/users\n- GET /api/jira/users/{id}/workload\n\nReturn JSON:\n{\n  \"api_calls\": [\n    {\"endpoint\": \"/api/jira/search\", \"params\": {\"jql\": \"project=X AND updated>=-3d\"}},\n    {\"endpoint\": \"/api/jira/sprints/123\", \"params\": {}}\n  ]\n}\n\nRule:\nDon't use any charachters, ``` etc  before and after your response \n\nContext:\n- Project: {{ $json.context.current_project || 'Not specified' }}\n- Intent: {{ JSON.stringify({ask_report: $json.ask_report, ask_recommendation: $json.ask_recommendation, ask_prediction: $json.ask_prediction}) }} {{ $json.context.current_project }}",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.user_message }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "75f7bd73-3e09-40f6-9549-51b8608b556d",
+      "name": "LLM2 API Planning",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        64
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "w1L6lrJFAu2c0hoV",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nlet planResponse;\n planResponse =  JSON.parse($input.first().json.message.content) \ntry {\n  planResponse =  JSON.parse($input.first().json.message.content) \n} catch (e) {\n  planResponse = { api_calls: [] };\n}\n\nconst apiCalls = planResponse.api_calls || [];\n\nif (apiCalls.length === 0) {\n  return [{\n    json: {\n      endpoint: '/api/jira/projects',\n      params: {},\n      // baseUrl: 'http://host.docker.internal:8000'\n      baseUrl: 'http://172.21.0.1:8000'\n      \n    }\n  }];\n}\n\nreturn apiCalls.map((call) => {\n  // const updatedParams = Object.keys(call.params || {}).reduce((acc, key) => {\n  //   const originalValue = call.params[key];\n    \n    // Only apply replace if the value is actually a string\n    // acc[key] = originalValue\n      // typeof originalValue === 'string' \n      // ? originalValue.replace(/\\s+/g, '') \n      // : originalValue;\n      \n  //   return acc;\n  // }, {});\n\n  return {\n    json: {\n      endpoint: call.endpoint,\n      params: call.params,\n      // baseUrl: 'http://host.docker.internal:8000'\n      baseUrl: 'http://172.21.0.1:8000'\n      \n    }\n  };\n});\n"
+      },
+      "id": "60cb9605-5409-497f-b498-383082f95ec3",
+      "name": "Prepare API Calls",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        80
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.baseUrl }}{{ $json.endpoint }}",
+        "sendQuery": true,
+        "specifyQuery": "=json",
+        "queryParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "jsonQuery": "={{ JSON.stringify($json.params || {}) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "9c269b00-72d9-4c76-a18e-9f9573f2f7fe",
+      "name": "Call Jira API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        656,
+        80
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const apiResults = $input.all().map(item => {\n  if (item.json.error) {\n    return {\n      endpoint: 'error',\n      data: {error: item.json.error}\n    };\n  }\n  return {\n    endpoint: item.json.endpoint || 'unknown',\n    data: item.json\n  };\n});\n\nconst flags = $('Parse Flags').first().json;\nconst context = flags.context;\nconst userMessage = flags.user_message;\n\nreturn {\n  json: {\n    flags: {\n      ask_help: flags.ask_help,\n      ask_report: flags.ask_report,\n      ask_recommendation: flags.ask_recommendation,\n      ask_prediction: flags.ask_prediction,\n      ask_pdf: flags.ask_pdf,\n      ask_chart: flags.ask_chart\n    },\n    context,\n    userMessage,\n    apiResults\n  }\n};"
+      },
+      "id": "4390095a-1eda-4708-82b6-f5c2c975d9d4",
+      "name": "Aggregate Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gemini-2.0-flash-lite",
+          "mode": "list",
+          "cachedResultName": "GEMINI-2.0-FLASH-LITE"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=If ERROR was not empty (Jira error, Axios error):\nOnly fill message and set report empty.\nERROR: <<{{ $json?.apiResults[0]?.data?.data?.error || $('Call Jira API').item.json.error.code  }} >>\n\notherwise:\nGenerate a comprehensive response based on Jira data and user/ assistant previous chats: {{ $('Extract Context').item.json.chat_history }}\n\nIntent flags: {{ JSON.stringify($json.flags) }}\n\nJira called results: {{JSON.stringify( $('Call Jira API').item.json.data) }}\n\noffer_file_generation = {{ $json.flags.ask_pdf || $json.flags.ask_chart }}\n\nReturn JSON:\n{\n  \"success\":true,\n  \"message\": \"conversational response to user in {{ $json.context.language }}, in case offer_file_generation was true then tell that you are working on generating the file \",\n  \"report\": {\n    \"summary\": \"executive summary in {{ $json.context.language }}, one paragraph\",\n    \"chart_data\": {\n      \"chart_plan\": \"bar|line|pie|scatter|histogram|heatmap\",\n      \"title\": \"chart title\",\n      \"labels\": [\"label1\", \"label2\"],\n      \"values\": [10, 20]\n    },\n    \"structured_data\": {\n      \"type\": \"key_insights\",\n      \"items\": [{\"label\": \"Key Point\", \"value\": \"Description\"}]\n    }\n  }\n}\n\nChart selection:\n- Trends over time → line\n- Category comparisons → bar\n- Proportions → pie\n- Correlations → scatter\n- Distributions → histogram\n- Matrix data → heatmap ",
+              "role": "system"
+            },
+            {
+              "content": "User: {{ $json.userMessage }}\n\nData: {{ JSON.stringify($json.apiResults) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4921ec6c-b030-4ed0-83b6-9bfd26431b51",
+      "name": "LLM3 Generate",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3,
+      "position": [
+        1024,
+        48
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "w1L6lrJFAu2c0hoV",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const llm3Output = $input.first().json;\nlet response;\n\ntry {\n  const content = llm3Output.message?.content || llm3Output.choices?.[0]?.message?.content || '{}';\n  response = JSON.parse(content);\n} catch (e) {\n  response = {\n    message: \"I encountered an error processing your request.\",\n    report: null\n  };\n}\n\nif (response.report?.chart_data) {\n  const validChartTypes = ['bar', 'line', 'pie', 'scatter', 'histogram', 'heatmap'];\n  if (!validChartTypes.includes(response.report.chart_data.chart_plan)) {\n    response.report.chart_data = null;\n  }\n  if (response.report.chart_data?.labels?.length !== response.report.chart_data?.values?.length) {\n    response.report.chart_data = null;\n  }\n}\n\nreturn {\n\n  ...response,\n  flags: {ask_chart:$('Aggregate Data').first().json.flags.ask_chart , ask_pdf:$('Aggregate Data').first().json.flags.ask_pdf  },\n};"
+      },
+      "id": "ff7cc681-0742-4343-bd00-dabddbbac609",
+      "name": "Validate Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "016a2195-563a-433a-8750-67372ba01138",
+      "name": "Return Final",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "8c052449-2614-4211-9dea-7476f0aa3a35",
+              "leftValue": "={{ $json.needsProcessing }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "12b3a967-a29f-48bd-b3e6-cc4abbd853cc",
+      "name": "Needs Processing",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -672,
+        368
+      ],
+      "id": "fbe81309-1e59-4831-83c4-654e492a29f8",
+      "name": "HTTP Request"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Context": {
+      "main": [
+        [
+          {
+            "node": "LLM1 Classification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM1 Classification": {
+      "main": [
+        [
+          {
+            "node": "Parse Flags",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Flags": {
+      "main": [
+        [
+          {
+            "node": "Needs Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Response": {
+      "main": [
+        [
+          {
+            "node": "Return Simple",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Help Query": {
+      "main": [
+        [
+          {
+            "node": "LLM4 Help",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LLM2 API Planning",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM4 Help": {
+      "main": [
+        [
+          {
+            "node": "Return Help",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM2 API Planning": {
+      "main": [
+        [
+          {
+            "node": "Prepare API Calls",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare API Calls": {
+      "main": [
+        [
+          {
+            "node": "Call Jira API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Jira API": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Data": {
+      "main": [
+        [
+          {
+            "node": "LLM3 Generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM3 Generate": {
+      "main": [
+        [
+          {
+            "node": "Validate Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Response": {
+      "main": [
+        [
+          {
+            "node": "Return Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Processing": {
+      "main": [
+        [
+          {
+            "node": "Is Help Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Simple Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "16a14b9c89134b9d048a71d8402c6dc9be3620a3b148463b34f482212af4ee30"
+  }
+}

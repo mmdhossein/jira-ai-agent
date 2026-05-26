@@ -1,0 +1,41 @@
+Issue Key,Summary,Issue Type,Status,Priority,Assignee,Reporter,Created,Updated,Due Date,Sprint,Labels,Components,Story Points,Fix Version,Description
+PROJ-1,Onboarding - Setup user account creation flow,Story,In Progress,High,alice,bob,20/May/26 9:00 AM,23/May/26 4:30 PM,26/May/26,1,onboarding,Backend,5,v2.1,Setup the account creation API
+PROJ-2,Onboarding - Email verification service,Story,Done,High,alice,bob,18/May/26 10:00 AM,24/May/26 2:00 PM,22/May/26,1,onboarding,Backend,3,v2.1,Email verification flow
+PROJ-3,Onboarding - Welcome email template,Task,In Progress,Medium,carol,bob,19/May/26 11:00 AM,25/May/26 9:15 AM,25/May/26,1,onboarding,Frontend,2,v2.1,Design welcome email
+PROJ-4,Onboarding - Profile setup wizard,Story,To Do,High,dave,alice,20/May/26 8:00 AM,24/May/26 11:00 AM,27/May/26,1,onboarding,Frontend,8,v2.1,Multi-step profile wizard
+PROJ-5,Onboarding - Role assignment on signup,Task,In Progress,High,eve,alice,21/May/26 9:00 AM,25/May/26 10:45 AM,26/May/26,1,onboarding,Backend,3,v2.1,Auto-assign roles during signup
+PROJ-6,Onboarding - Tutorial walkthrough UI,Story,To Do,Medium,carol,bob,22/May/26 10:00 AM,22/May/26 10:00 AM,30/May/26,1,onboarding,Frontend,5,v2.1,Interactive tutorial for new users
+PROJ-7,Onboarding - SSO integration,Story,Blocked,Critical,frank,alice,15/May/26 9:00 AM,23/May/26 3:00 PM,24/May/26,1,onboarding blocker,Backend,13,v2.1,SSO blocked by vendor API issue
+PROJ-8,Onboarding - Data migration for legacy users,Task,In Progress,High,dave,bob,17/May/26 8:00 AM,25/May/26 8:00 AM,28/May/26,1,onboarding,Backend,8,v2.1,Migrate legacy user data
+PROJ-9,Payment gateway integration,Story,In Progress,Critical,frank,carol,10/May/26 9:00 AM,24/May/26 5:00 PM,25/May/26,1,blocker,Backend,13,v2.1,Stripe integration blocked by compliance review
+PROJ-10,Payment - Refund workflow,Story,To Do,High,eve,bob,20/May/26 9:00 AM,20/May/26 9:00 AM,29/May/26,1,,Backend,5,v2.1,Refund processing workflow
+PROJ-11,Dashboard - KPI widgets,Story,In Progress,Medium,carol,bob,18/May/26 10:00 AM,25/May/26 11:00 AM,27/May/26,1,,Frontend,5,v2.1,Build KPI dashboard widgets
+PROJ-12,Dashboard - Export to PDF,Task,To Do,Low,grace,bob,21/May/26 9:00 AM,21/May/26 9:00 AM,02/Jun/26,1,,Frontend,3,v2.1,PDF export for reports
+PROJ-13,Reporting - Monthly summary report,Story,Done,Medium,grace,bob,12/May/26 9:00 AM,22/May/26 4:00 PM,20/May/26,1,,Backend,5,v2.1,Auto-generate monthly reports
+PROJ-14,Reporting - Custom date range filter,Task,In Progress,Medium,henry,bob,19/May/26 10:00 AM,24/May/26 2:30 PM,28/May/26,1,,Frontend,3,v2.1,Date range picker for reports
+PROJ-15,Notifications - Push notification service,Story,Blocked,High,frank,bob,14/May/26 9:00 AM,22/May/26 1:00 PM,23/May/26,1,blocker,Backend,8,v2.1,Blocked: Firebase quota exceeded
+PROJ-16,Notifications - Email digest,Task,Done,Medium,alice,bob,13/May/26 9:00 AM,21/May/26 3:00 PM,19/May/26,1,,Backend,3,v2.1,Daily email digest
+PROJ-17,Notifications - In-app alerts,Task,In Progress,Medium,carol,bob,20/May/26 9:00 AM,25/May/26 7:30 AM,27/May/26,1,,Frontend,3,v2.1,Real-time in-app alerts
+PROJ-18,Search - Full-text search indexing,Story,To Do,High,henry,bob,22/May/26 9:00 AM,22/May/26 9:00 AM,31/May/26,1,,Backend,8,v2.1,Elasticsearch indexing
+PROJ-19,Search - Autocomplete suggestions,Task,To Do,Medium,grace,bob,22/May/26 10:00 AM,22/May/26 10:00 AM,01/Jun/26,1,,Frontend,3,v2.1,Search autocomplete UI
+PROJ-20,Auth - MFA implementation,Story,In Progress,Critical,frank,bob,16/May/26 9:00 AM,25/May/26 12:00 PM,26/May/26,1,,Backend,8,v2.1,TOTP-based MFA
+PROJ-21,Auth - Session timeout policy,Task,Done,Medium,eve,bob,14/May/26 9:00 AM,20/May/26 4:00 PM,18/May/26,1,,Backend,2,v2.1,Configurable session timeout
+PROJ-22,Auth - Password reset flow,Task,Done,High,alice,bob,13/May/26 9:00 AM,19/May/26 2:00 PM,17/May/26,1,,Backend,3,v2.1,Secure password reset
+PROJ-23,API - Rate limiting,Story,In Progress,High,henry,frank,18/May/26 9:00 AM,24/May/26 3:00 PM,27/May/26,1,,Backend,5,v2.1,API rate limiting middleware
+PROJ-24,API - Versioning strategy,Task,To Do,Medium,dave,frank,21/May/26 9:00 AM,21/May/26 9:00 AM,30/May/26,1,,Backend,3,v2.1,API v2 versioning
+PROJ-25,CI/CD - Pipeline optimization,Task,Done,Medium,henry,bob,11/May/26 9:00 AM,21/May/26 11:00 AM,20/May/26,1,,DevOps,5,v2.1,Reduce build time
+PROJ-26,CI/CD - Staging environment setup,Task,Blocked,High,henry,bob,15/May/26 9:00 AM,23/May/26 9:00 AM,24/May/26,1,blocker,DevOps,5,v2.1,Blocked: AWS quota limit reached
+PROJ-27,Database - Query optimization,Task,In Progress,High,dave,bob,19/May/26 9:00 AM,25/May/26 6:00 AM,28/May/26,1,,Backend,5,v2.1,Slow query fixes
+PROJ-28,Database - Backup automation,Task,Done,Medium,henry,bob,12/May/26 9:00 AM,20/May/26 2:00 PM,18/May/26,1,,DevOps,3,v2.1,Automated daily backups
+PROJ-29,Mobile - iOS onboarding screens,Story,In Progress,High,grace,bob,20/May/26 9:00 AM,25/May/26 10:00 AM,29/May/26,1,onboarding,Mobile,8,v2.1,iOS onboarding UI
+PROJ-30,Mobile - Android onboarding screens,Story,To Do,High,grace,bob,22/May/26 9:00 AM,22/May/26 9:00 AM,31/May/26,1,onboarding,Mobile,8,v2.1,Android onboarding UI
+PROJ-31,Mobile - Push notification opt-in,Task,To Do,Medium,grace,bob,22/May/26 9:00 AM,22/May/26 9:00 AM,01/Jun/26,1,,Mobile,3,v2.1,Notification permission flow
+PROJ-32,UX - Accessibility audit,Task,In Progress,Medium,carol,bob,19/May/26 9:00 AM,24/May/26 4:00 PM,28/May/26,1,,Frontend,3,v2.1,WCAG 2.1 compliance
+PROJ-33,UX - Dark mode support,Story,To Do,Low,carol,bob,22/May/26 9:00 AM,22/May/26 9:00 AM,05/Jun/26,1,,Frontend,5,v2.2,Dark mode theme
+PROJ-34,Security - Penetration testing,Task,Blocked,Critical,frank,bob,14/May/26 9:00 AM,22/May/26 10:00 AM,23/May/26,1,blocker,Security,8,v2.1,Blocked: vendor not available until June
+PROJ-35,Security - GDPR compliance review,Story,In Progress,Critical,eve,alice,16/May/26 9:00 AM,25/May/26 9:00 AM,27/May/26,1,blocker,Security,8,v2.1,GDPR audit in progress
+PROJ-36,Onboarding - Localization support,Task,To Do,Medium,dave,bob,22/May/26 9:00 AM,22/May/26 9:00 AM,02/Jun/26,1,onboarding,Frontend,5,v2.1,i18n for onboarding screens
+PROJ-37,Analytics - User funnel tracking,Story,In Progress,High,eve,bob,18/May/26 9:00 AM,24/May/26 1:00 PM,27/May/26,1,,Analytics,5,v2.1,Funnel analytics integration
+PROJ-38,Analytics - Retention metrics,Task,To Do,Medium,eve,bob,22/May/26 9:00 AM,22/May/26 9:00 AM,01/Jun/26,1,,Analytics,3,v2.1,Cohort retention dashboard
+PROJ-39,Onboarding - A/B test signup variants,Story,In Progress,Medium,alice,eve,20/May/26 9:00 AM,25/May/26 8:45 AM,30/May/26,1,onboarding,Frontend,5,v2.1,A/B test two signup flows
+PROJ-40,Sprint retrospective action items,Task,To Do,Low,bob,bob,22/May/26 9:00 AM,22/May/26 9:00 AM,29/May/26,1,,Management,1,v2.1,Document retro action items

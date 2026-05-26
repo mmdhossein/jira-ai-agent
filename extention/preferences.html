@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Preferences</title>
+  <link rel="stylesheet" href="popup.css"/>
+</head>
+<body class="page-auth">
+
+  <div class="auth-box">
+    <div class="pref-header">
+      <button id="btn-back" class="btn-icon" aria-label="Back">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M12 4L6 10L12 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h2>Preferences</h2>
+    </div>
+
+    <section class="pref-section">
+      <label class="pref-label">Email address</label>
+      <input id="inp-email" type="email" placeholder="you@company.com"/>
+      <button id="btn-save" class="btn-primary">Save</button>
+      <div id="msg-success" class="success hidden">Saved.</div>
+      <div id="msg-error"   class="err hidden"></div>
+    </section>
+
+    <section class="pref-section">
+      <label class="pref-label">Session ID</label>
+      <p id="lbl-session" class="mono-text">—</p>
+      <button id="btn-new-session" class="btn-secondary">Start New Session</button>
+      <p class="hint">Clears chat history and generates a new session.</p>
+    </section>
+
+    <section class="pref-section">
+      <button id="btn-logout" class="btn-danger">Sign Out</button>
+    </section>
+  </div>
+
+  <script src="preferences.js"></script>
+</body>
+</html>
